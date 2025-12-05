@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model BookSection {
+  id        String   @id @default(uuid())
+  language  String   // "en" or "te"
+  title     String
+  body      String   // Long text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String   // "event" | "reminder" | "info"
+  createdAt DateTime @default(now())
+}
+
+model WorshipService {
+  id              String   @id @default(uuid())
+  date            DateTime
+  title           String
+  orderOfWorship  String   // JSON string
+  mainBibleVerses String
+  hymnNumbers     String   // JSON string or comma separated
+  summary         String?
+  createdAt       DateTime @default(now())
+}
+
+model WeeklySchedule {
+  id        String    @id @default(uuid())
+  weekStart DateTime
+  weekEnd   DateTime
+  label     String    // "This Week", "Next Week"
+  days      DayPlan[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model DayPlan {
+  id          String         @id @default(uuid())
+  date        DateTime
+  title       String
+  bibleVerses String?        // JSON or string
+  hymns       String?        // JSON or string
+  activities  String?
+  weekId      String
+  week        WeeklySchedule @relation(fields: [weekId], references: [id], onDelete: Cascade)
+}
+
+model LiveStreamConfig {
+  id             String   @id @default(uuid())
+  youtubeVideoId String
+  isLive         Boolean  @default(false)
+  title          String?
+  updatedAt      DateTime @updatedAt
+}
