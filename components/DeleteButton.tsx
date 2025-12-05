@@ -1,6 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
+import { Trash2 } from 'lucide-react';
 
 export default function DeleteButton() {
     const { pending } = useFormStatus();
@@ -8,9 +9,10 @@ export default function DeleteButton() {
         <button
             type="submit"
             disabled={pending}
-            className="text-red-400 hover:text-red-300 text-sm font-medium disabled:opacity-50"
+            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+            title={pending ? 'Deleting...' : 'Delete'}
         >
-            {pending ? 'Deleting...' : 'Delete'}
+            <Trash2 className="w-4 h-4" />
         </button>
     );
 }

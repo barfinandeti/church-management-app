@@ -23,6 +23,8 @@ model BookSection {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([language, title])
 }
 
 model Notification {
@@ -71,4 +73,12 @@ model LiveStreamConfig {
   isLive         Boolean  @default(false)
   title          String?
   updatedAt      DateTime @updatedAt
+}
+
+model LiveStreamHistory {
+  id             String   @id @default(uuid())
+  youtubeVideoId String
+  isLive         Boolean
+  title          String?
+  createdAt      DateTime @default(now())
 }

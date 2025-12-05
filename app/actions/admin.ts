@@ -1,80 +1,3 @@
-// 'use server';
-
-// import { prisma } from '@/lib/prisma';
-// import { revalidatePath } from 'next/cache';
-// import { redirect } from 'next/navigation';
-
-
-// // --- BookSection ---
-
-// export async function createBookSection(formData: FormData) {
-//     const title = formData.get('title') as string;
-//     const body = formData.get('body') as string;
-//     const language = formData.get('language') as string;
-//     const order = parseInt(formData.get('order') as string || '0');
-
-//     await prisma.bookSection.create({
-//         data: { title, body, language, order },
-//     });
-
-//     revalidatePath('/reader');
-//     revalidatePath('/admin/content');
-// }
-
-// export async function deleteBookSection(id: string) {
-//     await prisma.bookSection.delete({ where: { id } });
-//     revalidatePath('/reader');
-//     revalidatePath('/admin/content');
-// }
-
-// // --- Notification ---
-
-// export async function createNotification(formData: FormData) {
-//     const title = formData.get('title') as string;
-//     const message = formData.get('message') as string;
-//     const type = formData.get('type') as string;
-
-//     await prisma.notification.create({
-//         data: { title, message, type },
-//     });
-
-//     revalidatePath('/notifications');
-//     revalidatePath('/admin/notifications');
-// }
-
-// export async function deleteNotification(id: string) {
-//     await prisma.notification.delete({ where: { id } });
-//     revalidatePath('/notifications');
-//     revalidatePath('/admin/notifications');
-// }
-
-// // --- Live Stream ---
-
-// export async function updateLiveStreamConfig(formData: FormData) {
-//     const youtubeVideoId = formData.get('youtubeVideoId') as string;
-//     const isLive = formData.get('isLive') === 'on';
-//     const title = formData.get('title') as string;
-
-//     // Upsert (create if not exists, update if exists)
-//     // Since we don't have a unique constraint other than ID, we'll findFirst or create.
-//     const existing = await prisma.liveStreamConfig.findFirst();
-
-//     if (existing) {
-//         await prisma.liveStreamConfig.update({
-//             where: { id: existing.id },
-//             data: { youtubeVideoId, isLive, title },
-//         });
-//     } else {
-//         await prisma.liveStreamConfig.create({
-//             data: { youtubeVideoId, isLive, title },
-//         });
-//     }
-
-//     revalidatePath('/');
-//     revalidatePath('/admin/live');
-// }
-
-
 'use server';
 
 import { prisma } from '@/lib/prisma';
@@ -117,19 +40,38 @@ function normalizeBody(rawBody: string): string {
 // --- BookSection ---
 
 export async function createBookSection(formData: FormData) {
-    const title = (formData.get('title') as string) ?? '';
-    const rawBody = (formData.get('body') as string) ?? '';
-    const language = (formData.get('language') as string) ?? 'en';
-    const order = parseInt((formData.get('order') as string) || '0', 10);
+    try {
+        const title = (formData.get('title') as string) ?? '';
+        const rawBody = (formData.get('body') as string) ?? '';
+        const language = (formData.get('language') as string) ?? 'en';
 
-    const body = normalizeBody(rawBody);
+        const body = normalizeBody(rawBody);
 
-    await prisma.bookSection.create({
-        data: { title, body, language, order },
-    });
+        // Auto-assign order based on existing sections count for this language
+        const existingCount = await prisma.bookSection.count({
+            where: { language },
+        });
+        const order = existingCount;
 
-    revalidatePath('/reader');
-    revalidatePath('/admin/content');
+        await prisma.bookSection.create({
+            data: { title, body, language, order },
+        });
+
+        revalidatePath('/reader');
+        revalidatePath('/admin/content');
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to create book section:', error);
+
+        // Check for unique constraint violation on title
+        if (error.code === 'P2002' && error.meta?.target?.includes('title')) {
+            const titleValue = formData.get('title') as string;
+            return { success: false, error: `A section with the title "${titleValue}" already exists for this language. Please use a different title.` };
+        }
+
+        return { success: false, error: 'Failed to create content' };
+    }
 }
 
 export async function deleteBookSection(id: string) {
@@ -139,36 +81,55 @@ export async function deleteBookSection(id: string) {
 }
 
 export async function updateBookSection(id: string, formData: FormData) {
-    const title = (formData.get('title') as string) ?? '';
-    const rawBody = (formData.get('body') as string) ?? '';
-    const language = (formData.get('language') as string) ?? 'en';
-    const order = parseInt((formData.get('order') as string) || '0', 10);
+    try {
+        const title = (formData.get('title') as string) ?? '';
+        const rawBody = (formData.get('body') as string) ?? '';
+        // Don't allow language changes during update to maintain order integrity
 
-    const body = normalizeBody(rawBody);
+        const body = normalizeBody(rawBody);
 
-    await prisma.bookSection.update({
-        where: { id },
-        data: { title, body, language, order },
-    });
+        await prisma.bookSection.update({
+            where: { id },
+            data: { title, body },
+        });
 
-    revalidatePath('/reader');
-    revalidatePath('/admin/content');
-    // redirect('/admin/content'); // We will handle redirect in the client component or let the user navigate back
+        revalidatePath('/reader');
+        revalidatePath('/admin/content');
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to update book section:', error);
+
+        // Check for unique constraint violation on title
+        if (error.code === 'P2002' && error.meta?.target?.includes('title')) {
+            const titleValue = formData.get('title') as string;
+            return { success: false, error: `A section with the title "${titleValue}" already exists for this language. Please use a different title.` };
+        }
+
+        return { success: false, error: 'Failed to update content' };
+    }
 }
 
 // --- Notification ---
 
 export async function createNotification(formData: FormData) {
-    const title = (formData.get('title') as string) ?? '';
-    const message = (formData.get('message') as string) ?? '';
-    const type = (formData.get('type') as string) ?? '';
+    try {
+        const title = (formData.get('title') as string) ?? '';
+        const message = (formData.get('message') as string) ?? '';
+        const type = (formData.get('type') as string) ?? '';
 
-    await prisma.notification.create({
-        data: { title, message, type },
-    });
+        await prisma.notification.create({
+            data: { title, message, type },
+        });
 
-    revalidatePath('/notifications');
-    revalidatePath('/admin/notifications');
+        revalidatePath('/notifications');
+        revalidatePath('/admin/notifications');
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to create notification:', error);
+        return { success: false, error: 'Failed to create notification' };
+    }
 }
 
 export async function deleteNotification(id: string) {
@@ -178,39 +139,58 @@ export async function deleteNotification(id: string) {
 }
 
 export async function updateNotification(id: string, formData: FormData) {
-    const title = (formData.get('title') as string) ?? '';
-    const message = (formData.get('message') as string) ?? '';
-    const type = (formData.get('type') as string) ?? '';
+    try {
+        const title = (formData.get('title') as string) ?? '';
+        const message = (formData.get('message') as string) ?? '';
+        const type = (formData.get('type') as string) ?? '';
 
-    await prisma.notification.update({
-        where: { id },
-        data: { title, message, type },
-    });
+        await prisma.notification.update({
+            where: { id },
+            data: { title, message, type },
+        });
 
-    revalidatePath('/notifications');
-    revalidatePath('/admin/notifications');
+        revalidatePath('/notifications');
+        revalidatePath('/admin/notifications');
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update notification:', error);
+        return { success: false, error: 'Failed to update notification' };
+    }
 }
 
 // --- Live Stream ---
 
 export async function updateLiveStreamConfig(formData: FormData) {
-    const youtubeVideoId = (formData.get('youtubeVideoId') as string) ?? '';
-    const isLive = formData.get('isLive') === 'on';
-    const title = (formData.get('title') as string) ?? '';
+    try {
+        const youtubeVideoId = (formData.get('youtubeVideoId') as string) ?? '';
+        const isLive = formData.get('isLive') === 'on';
+        const title = (formData.get('title') as string) ?? '';
 
-    const existing = await prisma.liveStreamConfig.findFirst();
+        const existing = await prisma.liveStreamConfig.findFirst();
 
-    if (existing) {
-        await prisma.liveStreamConfig.update({
-            where: { id: existing.id },
+        if (existing) {
+            await prisma.liveStreamConfig.update({
+                where: { id: existing.id },
+                data: { youtubeVideoId, isLive, title },
+            });
+        } else {
+            await prisma.liveStreamConfig.create({
+                data: { youtubeVideoId, isLive, title },
+            });
+        }
+
+        // Create history record
+        await prisma.liveStreamHistory.create({
             data: { youtubeVideoId, isLive, title },
         });
-    } else {
-        await prisma.liveStreamConfig.create({
-            data: { youtubeVideoId, isLive, title },
-        });
+
+        revalidatePath('/');
+        revalidatePath('/admin/live');
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update live stream config:', error);
+        return { success: false, error: 'Failed to save configuration' };
     }
-
-    revalidatePath('/');
-    revalidatePath('/admin/live');
 }

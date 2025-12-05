@@ -4,6 +4,7 @@ import './globals.css';
 import ServiceWorkerRegister from './sw-register';
 import Navbar from '@/components/Navbar';
 import DisableRightClick from '@/components/DisableRightClick';
+import { Toaster } from '@/components/Toaster';
 import { clsx } from 'clsx';
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default function RootLayout({
             </head>
             <body suppressHydrationWarning className="bg-linear-to-br from-background via-secondary/30 to-background text-foreground min-h-screen font-sans antialiased selection:bg-primary/20">
                 <DisableRightClick />
+                <Toaster />
                 <ServiceWorkerRegister />
                 <div className="min-h-screen flex flex-col">
                     <Navbar />

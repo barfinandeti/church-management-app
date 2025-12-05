@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { toast } from 'sonner';
 
 const JoditEditor = dynamic(() => import('@/components/JoditEditor'), {
     ssr: false,
 });
 
 interface NotificationFormProps {
-    onSubmit: (formData: FormData) => void;
+    onSubmit: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
     initialData?: {
         title: string;
         type: string;
@@ -19,6 +20,8 @@ interface NotificationFormProps {
 
 export default function NotificationForm({ onSubmit, initialData, submitLabel = 'Post Notification' }: NotificationFormProps) {
     const [content, setContent] = useState<string>(initialData?.message || '');
+    const [isPending, startTransition] = useTransition();
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -27,11 +30,25 @@ export default function NotificationForm({ onSubmit, initialData, submitLabel = 
         // Add editor data
         formData.set('message', content);
 
-        onSubmit(formData);
+        startTransition(async () => {
+            const result = await onSubmit(formData);
+
+            if (result?.success === false) {
+                toast.error(result.error || 'Failed to save notification');
+            } else {
+                toast.success('Notification saved successfully!');
+
+                // Clear form ONLY when adding a new notification
+                if (!initialData && formRef.current) {
+                    formRef.current.reset();
+                    setContent('');
+                }
+            }
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-400 mb-1">Title</label>
@@ -68,9 +85,10 @@ export default function NotificationForm({ onSubmit, initialData, submitLabel = 
             </div>
             <button
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                disabled={isPending}
+                className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
-                {submitLabel}
+                {isPending ? 'Saving...' : submitLabel}
             </button>
         </form>
     );
