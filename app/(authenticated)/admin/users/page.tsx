@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import UserForm from '@/components/UserForm';
-import { deleteUser } from '@/app/actions/users';
-import DeleteButton from '@/components/DeleteButton';
+import UserDeleteButton from '@/components/UserDeleteButton';
 import Link from 'next/link';
 import { Edit2 } from 'lucide-react';
 
@@ -81,9 +80,7 @@ export default async function UsersPage() {
                                                 <Edit2 className="w-4 h-4" />
                                             </Link>
                                             {user.id !== session.user.id && (
-                                                <form action={deleteUser.bind(null, user.id)}>
-                                                    <DeleteButton />
-                                                </form>
+                                                <UserDeleteButton userId={user.id} />
                                             )}
                                         </div>
                                     </td>

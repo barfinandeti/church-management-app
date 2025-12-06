@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
-import { createWeeklySchedule, updateDayPlan, deleteWeeklySchedule } from '@/app/actions/schedule';
+import { updateDayPlan, deleteWeeklySchedule } from '@/app/actions/schedule';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
 import DeleteButton from '@/components/DeleteButton';
 import { requireAdmin, getChurchFilter } from '@/lib/auth';
-import ChurchSelector from '@/components/ChurchSelector';
+import CreateWeekForm from '@/components/CreateWeekForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,28 +48,7 @@ export default async function AdminSchedulePage(props: {
             {/* Create New Week */}
             <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
                 <h3 className="text-lg font-semibold text-slate-200 mb-4">Create/Select Week</h3>
-                <form action={createWeeklySchedule} className="flex flex-col gap-4">
-                    {churches.length > 0 && (
-                        <ChurchSelector churches={churches} className="w-full md:w-1/2" />
-                    )}
-                    <div className="flex gap-4 items-end">
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-slate-400 mb-1">Week Start Date (Monday)</label>
-                            <input
-                                type="date"
-                                name="weekStart"
-                                required
-                                className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                        >
-                            Create / Open Week
-                        </button>
-                    </div>
-                </form>
+                <CreateWeekForm churches={churches} />
 
                 {/* List of Weeks */}
                 <div className="mt-6 flex flex-wrap gap-2">

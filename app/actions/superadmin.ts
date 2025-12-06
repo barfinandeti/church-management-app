@@ -116,3 +116,49 @@ export async function updateChurchDetails(id: string, formData: FormData) {
         return { success: false, error: 'Failed to update church' };
     }
 }
+
+export async function getUsers() {
+    await requireSuperAdmin();
+    return await prisma.user.findMany({
+        include: {
+            church: true,
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+}
+
+export async function getChurches() {
+    await requireSuperAdmin();
+    return await prisma.church.findMany({
+        include: {
+            _count: {
+                select: { users: true },
+            },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+}
+
+export async function updateUserRole(userId: string, role: string, churchId?: string) {
+    try {
+        await requireSuperAdmin();
+
+        if (role === 'CHURCH_ADMIN' && !churchId) {
+            return { success: false, error: 'Church selection is required for Church Admin role' };
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                role: role as any,
+                churchId: churchId || null,
+            },
+        });
+
+        revalidatePath('/superadmin/users');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update user role:', error);
+        return { success: false, error: 'Failed to update user role' };
+    }
+}

@@ -79,7 +79,7 @@ export default async function AdminContentPage() {
                                         <tr key={section.id}>
                                             <td className="px-6 py-4 text-sm font-medium text-slate-200 max-w-md truncate">{section.title}</td>
                                             {session.user.role === 'SUPERADMIN' && (
-                                                <td className="px-6 py-4 text-sm text-slate-400">{section.church.name}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-400">{section.church?.name || 'N/A'}</td>
                                             )}
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex justify-end gap-2">
@@ -131,7 +131,7 @@ export default async function AdminContentPage() {
                                         <tr key={section.id}>
                                             <td className="px-6 py-4 text-sm font-medium text-slate-200 max-w-md truncate">{section.title}</td>
                                             {session.user.role === 'SUPERADMIN' && (
-                                                <td className="px-6 py-4 text-sm text-slate-400">{section.church.name}</td>
+                                                <td className="px-6 py-4 text-sm text-slate-400">{section.church?.name || 'N/A'}</td>
                                             )}
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex justify-end gap-2">

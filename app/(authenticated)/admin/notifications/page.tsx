@@ -72,7 +72,7 @@ export default async function AdminNotificationsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-400 max-w-md truncate" dangerouslySetInnerHTML={{ __html: notification.message }} />
                                         {session.user.role === 'SUPERADMIN' && (
-                                            <td className="px-6 py-4 text-sm text-slate-400">{notification.church.name}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-400">{notification.church?.name || 'N/A'}</td>
                                         )}
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <form action={deleteNotification.bind(null, notification.id)}>

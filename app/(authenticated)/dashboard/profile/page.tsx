@@ -2,6 +2,8 @@ import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import ProfileForm from './ProfileForm';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
     const session = await requireSession();
 
