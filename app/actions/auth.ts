@@ -17,7 +17,7 @@ export async function login(prevState: any, formData: FormData) {
         return { error: 'Email and password are required' };
     }
 
-    const user = await prisma.adminUser.findUnique({
+    const user = await prisma.user.findUnique({
         where: { email },
     });
 
@@ -38,7 +38,9 @@ export async function login(prevState: any, formData: FormData) {
     redirect('/admin');
 }
 
+import { clearSessionCookie } from '@/lib/auth';
+
 export async function logout() {
-    (await cookies()).delete('admin_session');
-    redirect('/admin/login');
+    await clearSessionCookie();
+    redirect('/');
 }

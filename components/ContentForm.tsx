@@ -111,6 +111,8 @@ const JoditEditor = dynamic(() => import('@/components/JoditEditor'), {
     ssr: false,
 });
 
+import ChurchSelector from './ChurchSelector';
+
 interface ContentFormProps {
     onSubmit: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
     initialData?: {
@@ -120,9 +122,10 @@ interface ContentFormProps {
         body: string;
     };
     submitLabel?: string;
+    churches?: { id: string; name: string }[];
 }
 
-export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add Section' }: ContentFormProps) {
+export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add Section', churches }: ContentFormProps) {
     const [content, setContent] = useState(initialData?.body || '');
     const [isPending, startTransition] = useTransition();
 
@@ -154,6 +157,10 @@ export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add 
 
     return (
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            {churches && churches.length > 0 && (
+                <ChurchSelector churches={churches} />
+            )}
+
             {/* input fields remain unchanged */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

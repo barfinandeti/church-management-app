@@ -8,15 +8,59 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model AdminUser {
-  id           String   @id @default(uuid())
+// ============================================
+// MULTI-TENANT & AUTH MODELS
+// ============================================
+
+enum UserRole {
+  SUPERADMIN
+  CHURCH_ADMIN
+  USER
+}
+
+model Church {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  email     String?
+  phoneNumber String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users              User[]
+  bookSections       BookSection[]
+  notifications      Notification[]
+  worshipServices    WorshipService[]
+  weeklySchedules    WeeklySchedule[]
+  liveStreamConfigs  LiveStreamConfig[]
+  liveStreamHistory  LiveStreamHistory[]
+}
+
+model User {
+  id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
+  name         String?
+  role         UserRole @default(USER)
+  churchId     String?
+  church       Church?  @relation(fields: [churchId], references: [id])
+  
+  isVerified        Boolean   @default(false)
+  verificationToken String?
+
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
+
+// ============================================
+// CONTENT MODELS (All tenant-aware)
+// ============================================
 
 model BookSection {
   id        String   @id @default(uuid())
+  churchId  String?
   language  String   // "en" or "te"
   title     String
   body      String   // Long text
@@ -24,19 +68,25 @@ model BookSection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([language, title])
+  church    Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@unique([churchId, language, title])
 }
 
 model Notification {
   id        String   @id @default(uuid())
+  churchId  String?
   title     String
   message   String
   type      String   // "event" | "reminder" | "info"
   createdAt DateTime @default(now())
+
+  church    Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
 }
 
 model WorshipService {
   id              String   @id @default(uuid())
+  churchId        String?
   date            DateTime
   title           String
   orderOfWorship  String   // JSON string
@@ -44,16 +94,21 @@ model WorshipService {
   hymnNumbers     String   // JSON string or comma separated
   summary         String?
   createdAt       DateTime @default(now())
+
+  church          Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
 }
 
 model WeeklySchedule {
   id        String    @id @default(uuid())
+  churchId  String?
   weekStart DateTime
   weekEnd   DateTime
   label     String    // "This Week", "Next Week"
   days      DayPlan[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  church    Church?   @relation(fields: [churchId], references: [id], onDelete: Cascade)
 }
 
 model DayPlan {
@@ -69,16 +124,22 @@ model DayPlan {
 
 model LiveStreamConfig {
   id             String   @id @default(uuid())
+  churchId       String?
   youtubeVideoId String
   isLive         Boolean  @default(false)
   title          String?
   updatedAt      DateTime @updatedAt
+
+  church         Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
 }
 
 model LiveStreamHistory {
   id             String   @id @default(uuid())
+  churchId       String?
   youtubeVideoId String
   isLive         Boolean
   title          String?
   createdAt      DateTime @default(now())
+
+  church         Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
 }

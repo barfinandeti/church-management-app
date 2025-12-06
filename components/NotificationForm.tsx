@@ -8,6 +8,8 @@ const JoditEditor = dynamic(() => import('@/components/JoditEditor'), {
     ssr: false,
 });
 
+import ChurchSelector from './ChurchSelector';
+
 interface NotificationFormProps {
     onSubmit: (formData: FormData) => Promise<{ success: boolean; error?: string } | void>;
     initialData?: {
@@ -16,9 +18,10 @@ interface NotificationFormProps {
         message: string;
     };
     submitLabel?: string;
+    churches?: { id: string; name: string }[];
 }
 
-export default function NotificationForm({ onSubmit, initialData, submitLabel = 'Post Notification' }: NotificationFormProps) {
+export default function NotificationForm({ onSubmit, initialData, submitLabel = 'Post Notification', churches }: NotificationFormProps) {
     const [content, setContent] = useState<string>(initialData?.message || '');
     const [isPending, startTransition] = useTransition();
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -49,6 +52,9 @@ export default function NotificationForm({ onSubmit, initialData, submitLabel = 
 
     return (
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            {churches && churches.length > 0 && (
+                <ChurchSelector churches={churches} />
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-400 mb-1">Title</label>
