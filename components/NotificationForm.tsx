@@ -19,7 +19,7 @@ interface NotificationFormProps {
         title: string;
         type: string;
         message: string;
-        churchId?: string;
+        churchId?: string | null;
     };
     submitLabel?: string;
     churches?: { id: string; name: string }[];
@@ -71,7 +71,7 @@ export default function NotificationForm({ onSubmit, initialData, submitLabel = 
     return (
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             {churches && churches.length > 0 && (
-                <ChurchSelector churches={churches} defaultValue={initialData?.churchId} />
+                <ChurchSelector churches={churches} defaultValue={initialData?.churchId || undefined} />
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

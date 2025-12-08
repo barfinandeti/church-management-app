@@ -104,7 +104,7 @@ export default async function PrayerRequestsAdminPage() {
                                     </div>
 
                                     <div className="text-xs text-slate-500">
-                                        Submitted by: {request.user.name || request.user.email}
+                                        Submitted by: {request.user?.name || request.user?.email || 'Unknown User'}
                                     </div>
                                 </div>
 

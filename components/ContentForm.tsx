@@ -120,7 +120,7 @@ interface ContentFormProps {
         language: string;
         order: number;
         body: string;
-        churchId?: string;
+        churchId?: string | null;
     };
     submitLabel?: string;
     churches?: { id: string; name: string }[];
@@ -163,7 +163,7 @@ export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add 
             {churches && churches.length > 0 && (
                 <ChurchSelector
                     churches={churches}
-                    defaultValue={initialData?.churchId}
+                    defaultValue={initialData?.churchId || undefined}
                 />
             )}
 
