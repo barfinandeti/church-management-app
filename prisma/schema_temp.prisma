@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js"
 }
 
@@ -134,7 +134,6 @@ model LiveStreamConfig {
   youtubeVideoId String
   isLive         Boolean  @default(false)
   title          String?
-  scheduledFor   DateTime?
   updatedAt      DateTime @updatedAt
 
   church         Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
@@ -146,24 +145,7 @@ model LiveStreamHistory {
   youtubeVideoId String
   isLive         Boolean
   title          String?
-  scheduledFor   DateTime?
   createdAt      DateTime @default(now())
 
   church         Church?  @relation(fields: [churchId], references: [id], onDelete: Cascade)
-}
-
-model PrayerRequest {
-  id        String   @id @default(uuid())
-  name      String
-  email     String?
-  phone     String?
-  request   String   @db.Text
-  isUrgent  Boolean  @default(false)
-  status    String   @default("pending")
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  churchId  String
-  church    Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

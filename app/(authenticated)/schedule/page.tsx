@@ -1,41 +1,52 @@
 import { prisma } from '@/lib/prisma';
 import ScheduleView from './ScheduleView';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
+import { getSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-async function getScheduleForWeek(date: Date) {
+async function getScheduleForWeek(date: Date, churchId?: string) {
     const start = startOfWeek(date, { weekStartsOn: 1 }); // Monday start
     const end = endOfWeek(date, { weekStartsOn: 1 });
 
-    // We look for a schedule that overlaps with this week or has matching start date
-    // Ideally, we store weekStart in DB.
-    // Let's find by weekStart range.
-
-    // Since we might not have exact time match, we look for weekStart between start and end of the target week day 1.
-    // Actually, let's just match the date part or use a range.
-
-    const schedule = await prisma.weeklySchedule.findFirst({
+    // Fetch schedules that match the week AND (belong to church OR are public)
+    const schedules = await prisma.weeklySchedule.findMany({
         where: {
             weekStart: {
                 gte: start,
                 lte: end,
             },
+            OR: [
+                { churchId: churchId || '' }, // If churchId is undefined, this won't match anything (which is fine if we only want public)
+                { churchId: null }
+            ]
         },
         include: {
             days: true,
         },
+        orderBy: {
+            createdAt: 'desc' // Tie-breaker
+        }
     });
 
-    return schedule;
+    // Prioritize church-specific schedule over public one
+    // If churchId is present, find one with that churchId.
+    // Otherwise, fallback to one with churchId === null.
+
+    const churchSchedule = schedules.find(s => s.churchId === churchId);
+    const publicSchedule = schedules.find(s => s.churchId === null);
+
+    return churchSchedule || publicSchedule || null;
 }
 
 export default async function SchedulePage() {
+    const session = await getSession();
+    const churchId = session?.user?.churchId || undefined;
     const today = new Date();
 
-    const thisWeek = await getScheduleForWeek(today);
-    const nextWeek = await getScheduleForWeek(addWeeks(today, 1));
-    const lastWeek = await getScheduleForWeek(subWeeks(today, 1));
+    const thisWeek = await getScheduleForWeek(today, churchId);
+    const nextWeek = await getScheduleForWeek(addWeeks(today, 1), churchId);
+    const lastWeek = await getScheduleForWeek(subWeeks(today, 1), churchId);
 
     return (
         <div className="space-y-6">

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createBookSection, deleteBookSection } from '@/app/actions/admin';
 import DeleteButton from '@/components/DeleteButton';
 import ContentForm from '@/components/ContentForm';
+import SuccessToast from '@/components/SuccessToast';
 import Link from 'next/link';
 import { Edit2 } from 'lucide-react';
 import { requireAdmin, getChurchFilter } from '@/lib/auth';
@@ -44,6 +45,7 @@ export default async function AdminContentPage() {
 
     return (
         <div className="space-y-8">
+            <SuccessToast />
             <h2 className="text-2xl font-bold text-white font-playfair">Worship Content</h2>
 
             {/* Single Content Editor */}

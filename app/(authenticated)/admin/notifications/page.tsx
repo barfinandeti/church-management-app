@@ -2,13 +2,32 @@ import { prisma } from '@/lib/prisma';
 import { createNotification, deleteNotification } from '@/app/actions/admin';
 import DeleteButton from '@/components/DeleteButton';
 import NotificationForm from '@/components/NotificationForm';
+import SuccessToast from '@/components/SuccessToast';
 import { requireAdmin, getChurchFilter } from '@/lib/auth';
+import Link from 'next/link';
+import { Edit2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminNotificationsPage() {
+export default async function AdminNotificationsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     const session = await requireAdmin();
     const churchFilter = getChurchFilter(session);
+
+    // Handle pre-filled data from query params (e.g. from sharing prayer request)
+    const { title: titleParam, message: messageParam } = await searchParams;
+    const title = typeof titleParam === 'string' ? titleParam : '';
+    const message = typeof messageParam === 'string' ? messageParam : '';
+
+    const initialData = title || message ? {
+        title,
+        message,
+        type: 'prayer-request', // Set default type for shared requests
+        churchId: session.user.churchId || undefined
+    } : undefined;
 
     const notifications = await prisma.notification.findMany({
         where: churchFilter,
@@ -28,12 +47,19 @@ export default async function AdminNotificationsPage() {
 
     return (
         <div className="space-y-8">
+            <SuccessToast />
             <h2 className="text-2xl font-bold text-white font-playfair">Notifications</h2>
 
             {/* Add New Notification */}
             <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
                 <h3 className="text-lg font-semibold text-slate-200 mb-4">Add New Notification</h3>
-                <NotificationForm onSubmit={createNotification} churches={churches} />
+                <NotificationForm
+                    key={initialData?.title || 'new'}
+                    onSubmit={createNotification}
+                    churches={churches}
+                    initialData={initialData}
+                    isEditing={false}
+                />
             </div>
 
             {/* List Notifications */}
@@ -75,9 +101,18 @@ export default async function AdminNotificationsPage() {
                                             <td className="px-6 py-4 text-sm text-slate-400">{notification.church?.name || 'N/A'}</td>
                                         )}
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <form action={deleteNotification.bind(null, notification.id)}>
-                                                <DeleteButton />
-                                            </form>
+                                            <div className="flex justify-end gap-2">
+                                                <Link
+                                                    href={`/admin/notifications/${notification.id}`}
+                                                    className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Link>
+                                                <form action={deleteNotification.bind(null, notification.id)}>
+                                                    <DeleteButton />
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

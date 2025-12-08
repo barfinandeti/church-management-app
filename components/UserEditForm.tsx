@@ -1,10 +1,11 @@
 'use client';
 
 import { updateUser } from '@/app/actions/users';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { User, Church } from '@prisma/client';
+import { Eye, EyeOff } from 'lucide-react';
 
 type UserEditFormProps = {
     user: User;
@@ -14,6 +15,7 @@ type UserEditFormProps = {
 
 export default function UserEditForm({ user, currentUserRole, churches }: UserEditFormProps) {
     const [isPending, startTransition] = useTransition();
+    const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (formData: FormData) => {
@@ -90,6 +92,33 @@ export default function UserEditForm({ user, currentUserRole, churches }: UserEd
                         </div>
                     )}
                 </div>
+
+                {currentUserRole === 'SUPERADMIN' && (
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            New Password (leave blank to keep current)
+                        </label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Enter new password"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 pr-10 text-slate-900 dark:text-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Only enter a password if you want to change it
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="pt-4 flex justify-end gap-4">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Calendar, Radio, Bell, User, Settings, LogOut } from 'lucide-react';
+import { Home, BookOpen, Calendar, Radio, Bell, User, Settings, LogOut, Heart } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
 interface SidebarSession {
@@ -26,20 +26,23 @@ const sidebarItems = [
     { name: 'Events', href: '/schedule', icon: Calendar },
     { name: 'Live Stream', href: '/live', icon: Radio },
     { name: 'Updates', href: '/notifications', icon: Bell },
+    { name: 'Prayer Request', href: '/prayer-request', icon: Heart },
 ];
 
 const adminItems = [
+    { name: 'Dashboard', href: '/admin', icon: Home },
     { name: 'Worship Content', href: '/admin/content', icon: BookOpen },
     { name: 'Schedule', href: '/admin/schedule', icon: Calendar },
     { name: 'Notifications', href: '/admin/notifications', icon: Bell },
     { name: 'Live Stream', href: '/admin/live', icon: Radio },
+    { name: 'Prayer Requests', href: '/admin/prayer-requests', icon: Heart },
 ];
 
 export default function Sidebar({ session }: SidebarProps) {
     const pathname = usePathname();
 
     return (
-        <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0">
+        <aside className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col h-screen sticky top-0">
             {/* Church Name Header */}
             <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white font-playfair">

@@ -1,16 +1,21 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { BookOpen, Calendar, Bell, Video, TrendingUp } from 'lucide-react';
+import { BookOpen, Calendar, Bell, Video, TrendingUp, LogOut } from 'lucide-react';
+import { logout } from '@/app/actions/auth';
+import { requireAdmin, getChurchFilter } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
+    const session = await requireAdmin();
+    const churchFilter = getChurchFilter(session);
+
     // Fetch statistics
     const [sectionsCount, notificationsCount, weeksCount, liveConfig] = await Promise.all([
-        prisma.bookSection.count(),
-        prisma.notification.count(),
-        prisma.weeklySchedule.count(),
-        prisma.liveStreamConfig.findFirst(),
+        prisma.bookSection.count({ where: churchFilter }),
+        prisma.notification.count({ where: churchFilter }),
+        prisma.weeklySchedule.count({ where: churchFilter }),
+        prisma.liveStreamConfig.findFirst({ where: churchFilter }),
     ]);
 
     const stats = [
@@ -82,9 +87,21 @@ export default async function AdminDashboardPage() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-white font-playfair">Dashboard</h1>
-                <p className="text-slate-400 mt-2">Welcome to the Order of Worship Admin Panel</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white font-playfair">Dashboard</h1>
+                    <p className="text-slate-400 mt-2">Welcome to the Order of Worship Admin Panel</p>
+                </div>
+                {/* Mobile Logout Button */}
+                <form action={logout} className="md:hidden">
+                    <button
+                        type="submit"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
 
             {/* Statistics Grid */}

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { updateProfile } from '@/app/actions/user';
+import { logout } from '@/app/actions/auth';
 import { toast } from 'sonner';
-import { Save, User, Mail } from 'lucide-react';
+import { Save, User, Mail, LogOut } from 'lucide-react';
 
 interface ProfileFormProps {
     user: {
@@ -31,54 +32,74 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
-                    <User className="w-5 h-5" />
-                    Personal Information
-                </h2>
+        <>
+            <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
+                        <User className="w-5 h-5" />
+                        Personal Information
+                    </h2>
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Full Name
-                        </label>
-                        <input
-                            name="name"
-                            defaultValue={user.name || ''}
-                            required
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Email Address
-                        </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Full Name
+                            </label>
                             <input
-                                type="email"
-                                value={user.email}
-                                disabled
-                                className="w-full pl-10 pr-3 py-2 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                                name="name"
+                                defaultValue={user.name || ''}
+                                required
+                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white"
                             />
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">Email cannot be changed</p>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="email"
+                                    value={user.email}
+                                    disabled
+                                    className="w-full pl-10 pr-3 py-2 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-slate-500">Email cannot be changed</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end">
+                        <button
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex items-center gap-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                            <Save className="w-4 h-4" />
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                        </button>
                     </div>
                 </div>
+            </form>
 
-                <div className="mt-6 flex justify-end">
-                    <button
-                        type="submit"
-                        disabled={isSaving}
-                        className="flex items-center gap-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                    >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
+            {/* Logout Button - Mobile Only */}
+            <div className="md:hidden max-w-2xl mt-6">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">
+                        Account Actions
+                    </h2>
+                    <form action={logout}>
+                        <button
+                            type="submit"
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg font-medium transition-colors"
+                        >
+                            <LogOut className="w-5 h-5" />
+                            Sign Out
+                        </button>
+                    </form>
                 </div>
             </div>
-        </form>
+        </>
     );
 }

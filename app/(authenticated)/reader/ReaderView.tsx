@@ -390,7 +390,7 @@ export default function ReaderView({ sections }: ReaderViewProps) {
                         )}
                         {availableSections.map((s) => (
                             <option key={s.id} value={s.id}>
-                                {s.title}
+                                {s.title} {s.churchId === null ? '(Public)' : ''}
                             </option>
                         ))}
                     </select>

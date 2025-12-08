@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { requireAdmin, getChurchFilter } from '@/lib/auth';
 
 // Helper: convert Editor.js-style JSON → HTML string
@@ -112,32 +113,36 @@ export async function deleteBookSection(id: string) {
 }
 
 export async function updateBookSection(id: string, formData: FormData) {
-    try {
-        const session = await requireAdmin();
+    const session = await requireAdmin();
 
-        // Verify ownership
-        const section = await prisma.bookSection.findUnique({ where: { id } });
-        if (!section) return { success: false, error: 'Section not found' };
+    // Verify ownership
+    const section = await prisma.bookSection.findUnique({ where: { id } });
+    if (!section) return { success: false, error: 'Section not found' };
 
-        if (session.user.role !== 'SUPERADMIN' && section.churchId !== session.user.churchId) {
-            return { success: false, error: 'Unauthorized' };
+    if (session.user.role !== 'SUPERADMIN' && section.churchId !== session.user.churchId) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    const title = (formData.get('title') as string) ?? '';
+    const rawBody = (formData.get('body') as string) ?? '';
+    const language = (formData.get('language') as string) ?? section.language;
+
+    // Allow superadmin to change churchId
+    let churchId = section.churchId;
+    if (session.user.role === 'SUPERADMIN') {
+        const formChurchId = formData.get('churchId') as string;
+        if (formChurchId) {
+            churchId = formChurchId;
         }
+    }
 
-        const title = (formData.get('title') as string) ?? '';
-        const rawBody = (formData.get('body') as string) ?? '';
-        // Don't allow language changes during update to maintain order integrity
+    const body = normalizeBody(rawBody);
 
-        const body = normalizeBody(rawBody);
-
+    try {
         await prisma.bookSection.update({
             where: { id },
-            data: { title, body },
+            data: { title, body, language, churchId },
         });
-
-        revalidatePath('/reader');
-        revalidatePath('/admin/content');
-
-        return { success: true };
     } catch (error: any) {
         console.error('Failed to update book section:', error);
 
@@ -149,6 +154,11 @@ export async function updateBookSection(id: string, formData: FormData) {
 
         return { success: false, error: 'Failed to update content' };
     }
+
+    revalidatePath('/reader');
+    revalidatePath('/admin/content');
+
+    redirect('/admin/content?success=true');
 }
 
 // --- Notification ---
@@ -174,9 +184,18 @@ export async function createNotification(formData: FormData) {
         const title = (formData.get('title') as string) ?? '';
         const message = (formData.get('message') as string) ?? '';
         const type = (formData.get('type') as string) ?? '';
+        const scheduledFor = formData.get('scheduledFor') as string | null;
 
         await prisma.notification.create({
-            data: { title, message, type, churchId },
+            data: {
+                title,
+                message,
+                type,
+                churchId,
+                scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+                isPublished: !scheduledFor,  // Publish immediately if not scheduled
+                publishedAt: !scheduledFor ? new Date() : null
+            },
         });
 
         revalidatePath('/notifications');
@@ -205,33 +224,33 @@ export async function deleteNotification(id: string) {
 }
 
 export async function updateNotification(id: string, formData: FormData) {
+    const session = await requireAdmin();
+
+    const notification = await prisma.notification.findUnique({ where: { id } });
+    if (!notification) return { success: false, error: 'Notification not found' };
+
+    if (session.user.role !== 'SUPERADMIN' && notification.churchId !== session.user.churchId) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    const title = (formData.get('title') as string) ?? '';
+    const message = (formData.get('message') as string) ?? '';
+    const type = (formData.get('type') as string) ?? '';
+
     try {
-        const session = await requireAdmin();
-
-        const notification = await prisma.notification.findUnique({ where: { id } });
-        if (!notification) return { success: false, error: 'Notification not found' };
-
-        if (session.user.role !== 'SUPERADMIN' && notification.churchId !== session.user.churchId) {
-            return { success: false, error: 'Unauthorized' };
-        }
-
-        const title = (formData.get('title') as string) ?? '';
-        const message = (formData.get('message') as string) ?? '';
-        const type = (formData.get('type') as string) ?? '';
-
         await prisma.notification.update({
             where: { id },
             data: { title, message, type },
         });
-
-        revalidatePath('/notifications');
-        revalidatePath('/admin/notifications');
-
-        return { success: true };
     } catch (error) {
         console.error('Failed to update notification:', error);
         return { success: false, error: 'Failed to update notification' };
     }
+
+    revalidatePath('/notifications');
+    revalidatePath('/admin/notifications');
+
+    redirect('/admin/notifications?success=true');
 }
 
 // --- Live Stream ---
@@ -257,27 +276,61 @@ export async function updateLiveStreamConfig(formData: FormData) {
         const youtubeVideoId = (formData.get('youtubeVideoId') as string) ?? '';
         const isLive = formData.get('isLive') === 'on';
         const title = (formData.get('title') as string) ?? '';
+        const scheduledForStr = formData.get('scheduledFor') as string | null;
+        const scheduledFor = scheduledForStr ? new Date(scheduledForStr) : null;
+
+        if (!youtubeVideoId) {
+            return { success: false, error: 'YouTube Video ID is required' };
+        }
 
         // Find config for THIS church
-        const existing = await prisma.liveStreamConfig.findFirst({
+        const existingConfig = await prisma.liveStreamConfig.findFirst({
             where: { churchId }
         });
 
-        if (existing) {
+        // Check if this Video ID is already in history
+        const existingHistory = await prisma.liveStreamHistory.findFirst({
+            where: {
+                churchId,
+                youtubeVideoId
+            }
+        });
+
+        // LOGIC:
+        // 1. If we are updating the CURRENT stream (same ID as config), update history instead of creating new.
+        // 2. If we are setting a NEW stream (different ID), check if it exists in history. If so, BLOCK.
+
+        const isUpdatingCurrent = existingConfig && existingConfig.youtubeVideoId === youtubeVideoId;
+
+        if (!isUpdatingCurrent && existingHistory) {
+            return { success: false, error: 'A stream with this Video ID already exists in history.' };
+        }
+
+        // Update or Create Config
+        if (existingConfig) {
             await prisma.liveStreamConfig.update({
-                where: { id: existing.id },
-                data: { youtubeVideoId, isLive, title },
+                where: { id: existingConfig.id },
+                data: { youtubeVideoId, isLive, title, scheduledFor },
             });
         } else {
             await prisma.liveStreamConfig.create({
-                data: { youtubeVideoId, isLive, title, churchId },
+                data: { youtubeVideoId, isLive, title, churchId, scheduledFor },
             });
         }
 
-        // Create history record
-        await prisma.liveStreamHistory.create({
-            data: { youtubeVideoId, isLive, title, churchId },
-        });
+        // Handle History
+        if (isUpdatingCurrent && existingHistory) {
+            // Update existing history record
+            await prisma.liveStreamHistory.update({
+                where: { id: existingHistory.id },
+                data: { isLive, title, scheduledFor }
+            });
+        } else {
+            // Create new history record (only if it didn't exist, which is enforced by the check above)
+            await prisma.liveStreamHistory.create({
+                data: { youtubeVideoId, isLive, title, churchId, scheduledFor },
+            });
+        }
 
         revalidatePath('/');
         revalidatePath('/admin/live');
@@ -317,5 +370,45 @@ export async function updateChurch(formData: FormData) {
     } catch (error) {
         console.error('Failed to update church settings:', error);
         return { success: false, error: 'Failed to update settings' };
+    }
+}
+
+export async function deleteLiveStreamAndHistory(id: string) {
+    try {
+        const session = await requireAdmin();
+        const churchId = session.user.churchId;
+
+        // Find the history record
+        const history = await prisma.liveStreamHistory.findUnique({
+            where: { id }
+        });
+
+        if (!history) return { success: false, error: 'History record not found' };
+
+        // Verify ownership
+        if (session.user.role !== 'SUPERADMIN' && history.churchId !== churchId) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        // Delete history
+        await prisma.liveStreamHistory.delete({ where: { id } });
+
+        // If the current config matches this history item (same video ID) and is currently live, turn it off
+        const config = await prisma.liveStreamConfig.findFirst({
+            where: { churchId: history.churchId }
+        });
+
+        if (config && config.isLive && config.youtubeVideoId === history.youtubeVideoId) {
+            await prisma.liveStreamConfig.update({
+                where: { id: config.id },
+                data: { isLive: false }
+            });
+        }
+
+        revalidatePath('/admin/live');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to delete live stream history:', error);
+        return { success: false, error: 'Failed to delete history' };
     }
 }

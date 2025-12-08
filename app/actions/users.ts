@@ -54,6 +54,7 @@ export async function updateUser(id: string, formData: FormData) {
         const email = formData.get('email') as string;
         const role = formData.get('role') as string;
         const churchId = formData.get('churchId') as string;
+        const password = formData.get('password') as string;
 
         // Validation
         if (!name || !email || !role) {
@@ -83,16 +84,29 @@ export async function updateUser(id: string, formData: FormData) {
             if (churchId && churchId !== session.user.churchId) {
                 return { success: false, error: 'Cannot change church' };
             }
+            // Church admins cannot change passwords
+            if (password) {
+                return { success: false, error: 'Unauthorized to change passwords' };
+            }
+        }
+
+        // Prepare update data
+        const updateData: any = {
+            name,
+            email,
+            role: role as any,
+            churchId: churchId || null,
+        };
+
+        // Only superadmin can update password, and only if provided
+        if (session.user.role === 'SUPERADMIN' && password && password.trim() !== '') {
+            const { hashPassword } = await import('@/lib/auth');
+            updateData.password = await hashPassword(password);
         }
 
         await prisma.user.update({
             where: { id },
-            data: {
-                name,
-                email,
-                role: role as any,
-                churchId: churchId || null,
-            },
+            data: updateData,
         });
 
         revalidatePath('/admin/users');

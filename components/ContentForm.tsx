@@ -120,6 +120,7 @@ interface ContentFormProps {
         language: string;
         order: number;
         body: string;
+        churchId?: string;
     };
     submitLabel?: string;
     churches?: { id: string; name: string }[];
@@ -143,11 +144,13 @@ export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add 
 
             if (result?.success === false) {
                 toast.error(result.error || 'Failed to save content');
-            } else {
+            } else if (!initialData) {
+                // Only show success toast for new content creation
+                // Updates will show toast via redirect
                 toast.success('Content saved successfully!');
 
                 // Clear form ONLY when adding a new section
-                if (!initialData && formRef.current) {
+                if (formRef.current) {
                     formRef.current.reset();
                     setContent('');
                 }
@@ -158,7 +161,10 @@ export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add 
     return (
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             {churches && churches.length > 0 && (
-                <ChurchSelector churches={churches} />
+                <ChurchSelector
+                    churches={churches}
+                    defaultValue={initialData?.churchId}
+                />
             )}
 
             {/* input fields remain unchanged */}
@@ -180,7 +186,6 @@ export default function ContentForm({ onSubmit, initialData, submitLabel = 'Add 
                         name="language"
                         defaultValue={initialData?.language || 'en'}
                         className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-slate-200"
-                        disabled={!!initialData} // Disable language change when editing
                     >
                         <option value="en">English</option>
                         <option value="te">Telugu</option>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface Church {
     id: string;
@@ -18,6 +19,7 @@ interface UserFormProps {
 export default function UserForm({ currentUserRole, currentUserChurchId, churches }: UserFormProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -88,13 +90,23 @@ export default function UserForm({ currentUserRole, currentUserChurchId, churche
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-400 mb-1">Password</label>
-                    <input
-                        type="password"
-                        required
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-slate-200"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 pr-10 text-slate-200"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-400 mb-1">Role</label>
