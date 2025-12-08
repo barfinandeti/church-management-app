@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Calendar, Radio, Bell, ChevronRight } from 'lucide-react';
+import InstallPWA from '@/components/InstallPWA';
+import AppGuide from '@/components/AppGuide';
 
 async function getTodayService(churchId: string) {
     const today = new Date();
@@ -176,6 +178,11 @@ export default async function DashboardPage() {
 
     return (
         <div className="space-y-8">
+            <div className="space-y-4">
+                <InstallPWA />
+                <AppGuide />
+            </div>
+
             {/* Welcome Section */}
             <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
                 {session.user.church?.name && (
