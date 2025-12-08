@@ -35,7 +35,13 @@ export default function BottomNav({ session }: BottomNavProps) {
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50">
             <div className="flex items-center justify-around px-2 py-2 safe-area-inset-bottom">
-                {mainNavItems.map((item) => {
+                {mainNavItems.filter(item => {
+                    // Hide Prayer Request for Admins
+                    if (item.href === '/prayer-request' && isAdmin) {
+                        return false;
+                    }
+                    return true;
+                }).map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     const Icon = item.icon;
 

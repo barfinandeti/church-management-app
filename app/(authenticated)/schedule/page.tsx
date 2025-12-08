@@ -51,7 +51,7 @@ export default async function SchedulePage() {
     return (
         <div className="space-y-6">
             <header className="text-center">
-                <h1 className="text-3xl font-bold font-playfair text-slate-900">
+                <h1 className="text-3xl font-bold font-playfair text-slate-800 dark:text-white/90 mb-4 hidden md:block">
                     Weekly Schedule
                 </h1>
             </header>

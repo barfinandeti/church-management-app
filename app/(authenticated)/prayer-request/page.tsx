@@ -44,7 +44,20 @@ export default async function PrayerRequestPage() {
                 </p>
             </div>
 
-            <PrayerRequestForm onSubmit={createPrayerRequest} userEmail={session.user.email} />
+            {/* Hide form for admins */}
+            {(session.user.role === 'SUPERADMIN' || session.user.role === 'CHURCH_ADMIN') ? (
+                <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-xl text-center">
+                    <p className="text-slate-400">
+                        As an administrator, you can manage prayer requests in the{' '}
+                        <a href="/admin/prayer-requests" className="text-indigo-400 hover:text-indigo-300 underline">
+                            Admin Dashboard
+                        </a>
+                        .
+                    </p>
+                </div>
+            ) : (
+                <PrayerRequestForm onSubmit={createPrayerRequest} userEmail={session.user.email} />
+            )}
 
             <UserPrayerRequests requests={userRequests} deletePrayerRequest={deletePrayerRequest} />
         </div>

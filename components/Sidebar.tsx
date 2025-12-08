@@ -55,7 +55,13 @@ export default function Sidebar({ session }: SidebarProps) {
 
             {/* Navigation Items */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                {sidebarItems.map((item) => {
+                {sidebarItems.filter(item => {
+                    // Hide Prayer Request for Admins
+                    if (item.href === '/prayer-request' && (session.user.role === 'SUPERADMIN' || session.user.role === 'CHURCH_ADMIN')) {
+                        return false;
+                    }
+                    return true;
+                }).map((item) => {
                     const isActive = pathname === item.href;
                     const Icon = item.icon;
 
@@ -86,7 +92,9 @@ export default function Sidebar({ session }: SidebarProps) {
                             </h3>
                         </div>
                         {adminItems.map((item) => {
-                            const isActive = pathname.startsWith(item.href);
+                            const isActive = item.href === '/admin'
+                                ? pathname === item.href
+                                : pathname.startsWith(item.href);
                             const Icon = item.icon;
 
                             return (

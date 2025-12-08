@@ -178,6 +178,11 @@ export default async function DashboardPage() {
         <div className="space-y-8">
             {/* Welcome Section */}
             <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+                {session.user.church?.name && (
+                    <h2 className="text-lg font-medium text-indigo-600 dark:text-indigo-400 mb-1">
+                        {session.user.church.name}
+                    </h2>
+                )}
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-playfair">
                     Welcome, {session.user.name?.split(' ')[0] || 'Member'}
                 </h1>
@@ -249,8 +254,8 @@ export default async function DashboardPage() {
                                 <div className="flex gap-4">
                                     <div className="shrink-0">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${note.churchId === null
-                                                ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                            ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                                             }`}>
                                             <Bell className="w-5 h-5" />
                                         </div>

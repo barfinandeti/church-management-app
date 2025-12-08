@@ -25,7 +25,7 @@ export default async function ReaderPage() {
 
     return (
         <div className="h-full">
-            <h1 className="text-3xl font-bold font-playfair text-slate-800 mb-4 hidden md:block">
+            <h1 className="text-3xl font-bold font-playfair text-slate-800 dark:text-white/90 mb-4 hidden md:block">
                 Reader
             </h1>
             <ReaderView sections={sections} />

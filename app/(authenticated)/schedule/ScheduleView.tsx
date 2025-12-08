@@ -20,14 +20,14 @@ export default function ScheduleView({ thisWeek, nextWeek, lastWeek }: ScheduleV
     return (
         <div className="space-y-6">
             <Tabs defaultValue="this" className="w-full">
-                <TabsList className="bg-slate-200 rounded-2xl p-1 shadow-lg grid w-full grid-cols-3">
-                    <TabsTrigger value="last" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
+                <TabsList className="bg-slate-200 dark:bg-slate-800 rounded-2xl p-1 shadow-lg grid w-full grid-cols-3">
+                    <TabsTrigger value="last" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-md dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">
                         Last Week
                     </TabsTrigger>
-                    <TabsTrigger value="this" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
+                    <TabsTrigger value="this" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-md dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">
                         This Week
                     </TabsTrigger>
-                    <TabsTrigger value="next" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
+                    <TabsTrigger value="next" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-md dark:text-slate-300 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white">
                         Next Week
                     </TabsTrigger>
                 </TabsList>
@@ -52,51 +52,51 @@ function WeekContent({ schedule }: { schedule: ScheduleWithDays }) {
     return (
         <>
             <div className="text-center mb-6">
-                <h2 className="text-xl font-playfair text-slate-900">
+                <h2 className="text-xl font-playfair text-slate-900 dark:text-white">
                     {format(new Date(schedule.weekStart), 'MMM d')} - {format(new Date(schedule.weekEnd), 'MMM d, yyyy')}
                 </h2>
-                <p className="text-slate-800 text-sm mt-1">{schedule.label}</p>
+                <p className="text-slate-800 dark:text-slate-300 text-sm mt-1">{schedule.label}</p>
             </div>
 
             <div className="grid gap-4">
                 {schedule.days
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map((day) => (
-                        <Card key={day.id} className="bg-slate-200 border-none shadow-lg hover:shadow-xl transition-shadow">
+                        <Card key={day.id} className="bg-slate-200 dark:bg-slate-800 border-none shadow-lg hover:shadow-xl transition-shadow">
                             <CardHeader>
                                 <div className="flex flex-col md:flex-row md:items-start gap-4">
                                     <div className="md:w-32 shrink-0">
-                                        <p className="text-indigo-600 font-bold uppercase tracking-wider text-sm">
+                                        <p className="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider text-sm">
                                             {format(new Date(day.date), 'EEEE')}
                                         </p>
-                                        <p className="text-slate-600 text-sm">
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm">
                                             {format(new Date(day.date), 'MMM d')}
                                         </p>
                                     </div>
                                     <div className="flex-1">
-                                        <CardTitle className="text-slate-800">{day.title}</CardTitle>
+                                        <CardTitle className="text-slate-800 dark:text-white">{day.title}</CardTitle>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {day.bibleVerses && (
                                     <div className="text-sm">
-                                        <span className="text-slate-600 block text-xs uppercase tracking-wide mb-1">Readings</span>
-                                        <p className="text-slate-800">{day.bibleVerses}</p>
+                                        <span className="text-slate-600 dark:text-slate-400 block text-xs uppercase tracking-wide mb-1">Readings</span>
+                                        <p className="text-slate-800 dark:text-slate-300">{day.bibleVerses}</p>
                                     </div>
                                 )}
 
                                 {day.hymns && (
                                     <div className="text-sm">
-                                        <span className="text-slate-600 block text-xs uppercase tracking-wide mb-1">Hymns</span>
-                                        <p className="text-slate-800">{day.hymns}</p>
+                                        <span className="text-slate-600 dark:text-slate-400 block text-xs uppercase tracking-wide mb-1">Hymns</span>
+                                        <p className="text-slate-800 dark:text-slate-300">{day.hymns}</p>
                                     </div>
                                 )}
 
                                 {day.activities && (
-                                    <div className="text-sm bg-white p-3 rounded-lg mt-2">
-                                        <span className="text-slate-600 block text-xs uppercase tracking-wide mb-1">Activities</span>
-                                        <p className="text-slate-800 whitespace-pre-wrap">{day.activities}</p>
+                                    <div className="text-sm bg-white dark:bg-slate-700 p-3 rounded-lg mt-2">
+                                        <span className="text-slate-600 dark:text-slate-400 block text-xs uppercase tracking-wide mb-1">Activities</span>
+                                        <p className="text-slate-800 dark:text-slate-300 whitespace-pre-wrap">{day.activities}</p>
                                     </div>
                                 )}
                             </CardContent>
@@ -109,9 +109,9 @@ function WeekContent({ schedule }: { schedule: ScheduleWithDays }) {
 
 function EmptyState() {
     return (
-        <Card className="bg-slate-200 border-none">
+        <Card className="bg-slate-200 dark:bg-slate-800 border-none">
             <CardContent className="text-center py-12">
-                <p className="text-slate-600">No schedule available for this week.</p>
+                <p className="text-slate-600 dark:text-slate-400">No schedule available for this week.</p>
             </CardContent>
         </Card>
     );

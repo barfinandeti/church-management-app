@@ -15,12 +15,12 @@ export default async function LivePage() {
     return (
         <div className="space-y-8">
             <header className="text-center space-y-2">
-                <h1 className="text-3xl font-bold font-playfair text-slate-800">
+                <h1 className="text-3xl font-bold font-playfair text-slate-800 dark:text-white">
                     Live Stream
                 </h1>
             </header>
 
-            <section className="bg-slate-200 rounded-3xl overflow-hidden shadow-2xl">
+            <section className="bg-slate-200 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl">
                 {isLive && liveConfig?.youtubeVideoId ? (
                     <div className="aspect-video w-full">
                         <iframe
@@ -35,21 +35,21 @@ export default async function LivePage() {
                         ></iframe>
                     </div>
                 ) : (
-                    <div className="aspect-video w-full flex items-center justify-center bg-slate-300">
+                    <div className="aspect-video w-full flex items-center justify-center bg-slate-300 dark:bg-slate-700">
                         <div className="text-center p-6">
-                            <p className="text-lg mb-2 text-slate-700">No live stream currently.</p>
+                            <p className="text-lg mb-2 text-slate-700 dark:text-slate-300">No live stream currently.</p>
                             {liveConfig?.youtubeVideoId && (
-                                <p className="text-sm text-slate-600">Check back soon for our next service!</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">Check back soon for our next service!</p>
                             )}
                         </div>
                     </div>
                 )}
-                <div className="p-6 bg-slate-200">
-                    <h2 className="text-xl font-semibold text-slate-900">
+                <div className="p-6 bg-slate-200 dark:bg-slate-800">
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                         {isLive ? '🔴 Live Now' : 'Stream Offline'}
                     </h2>
                     {liveConfig?.title && (
-                        <p className="text-slate-700 mt-1">{liveConfig.title}</p>
+                        <p className="text-slate-700 dark:text-slate-300 mt-1">{liveConfig.title}</p>
                     )}
                 </div>
             </section>
